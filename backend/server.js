@@ -31,7 +31,7 @@ app.post('/convert', async (req, res) => {
         if (process.env.VERCEL) {
             // Production (Vercel) configuration
             browser = await puppeteer.launch({
-                args: chromium.args,
+                args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
                 defaultViewport: chromium.defaultViewport,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
