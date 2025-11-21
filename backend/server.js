@@ -1,5 +1,6 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -7,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse JSON and raw body
 app.use(express.json({ limit: '50mb' }));
 app.use(express.text({ type: 'text/html', limit: '50mb' }));
-// app.use(express.static('public')); // Frontend is now separate
+
 app.get('/', (req, res) => {
     res.send('HTML to PDF Service is running. POST HTML to /convert to generate PDF.');
 });
@@ -25,10 +26,28 @@ app.post('/convert', async (req, res) => {
             return res.status(400).send('Invalid HTML content. Please send HTML string in the body.');
         }
 
-        const browser = await puppeteer.launch({
-            headless: 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
+        let browser;
+
+        if (process.env.VERCEL) {
+            // Production (Vercel) configuration
+            chromium.setGraphicsMode = false;
+            browser = await puppeteer.launch({
+                args: chromium.args,
+                defaultViewport: chromium.defaultViewport,
+                executablePath: await chromium.executablePath(),
+                headless: chromium.headless,
+                ignoreHTTPSErrors: true,
+            });
+        } else {
+            // Local development configuration
+            // We dynamically require 'puppeteer' here to avoid errors in production where it's not installed
+            const puppeteerLocal = require('puppeteer');
+            browser = await puppeteerLocal.launch({
+                headless: 'new',
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+        }
+
         const page = await browser.newPage();
 
         // Set content and wait for network idle to ensure assets load
