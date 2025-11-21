@@ -30,7 +30,6 @@ app.post('/convert', async (req, res) => {
 
         if (process.env.VERCEL) {
             // Production (Vercel) configuration
-            chromium.setGraphicsMode = false;
             browser = await puppeteer.launch({
                 args: chromium.args,
                 defaultViewport: chromium.defaultViewport,
@@ -77,7 +76,11 @@ app.post('/convert', async (req, res) => {
 
     } catch (error) {
         console.error('Conversion error:', error);
-        res.status(500).send('Error converting HTML to PDF');
+        res.status(500).json({
+            error: 'Error converting HTML to PDF',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 
