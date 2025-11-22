@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emptyState.classList.add('hidden');
 
         try {
-            const response = await fetch('/convert', {
+            const response = await fetch('http://localhost:3000/convert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/html' },
                 body: htmlContent

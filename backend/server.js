@@ -9,6 +9,13 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.text({ type: 'text/html', limit: '50mb' }));
 
+// Enable CORS for local testing
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
+
 app.get('/', (req, res) => {
     res.send('HTML to PDF Service is running. POST HTML to /convert to generate PDF.');
 });
@@ -38,12 +45,18 @@ app.post('/convert', async (req, res) => {
             });
         } else {
             // Local development configuration
-            // We dynamically require 'puppeteer' here to avoid errors in production where it's not installed
-            const puppeteerLocal = require('puppeteer');
-            browser = await puppeteerLocal.launch({
-                headless: 'new',
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
-            });
+            console.log('Launching local Puppeteer...');
+            try {
+                const puppeteerLocal = require('puppeteer');
+                browser = await puppeteerLocal.launch({
+                    headless: true,
+                    args: ['--no-sandbox', '--disable-setuid-sandbox']
+                });
+                console.log('Local browser launched successfully.');
+            } catch (localError) {
+                console.error('Failed to launch local puppeteer:', localError);
+                throw new Error(`Local Puppeteer launch failed: ${localError.message}. Make sure you have run 'npm install' and that Chrome is installed.`);
+            }
         }
 
         const page = await browser.newPage();
