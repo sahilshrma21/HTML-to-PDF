@@ -35,7 +35,6 @@ app.post('/convert', async (req, res) => {
                 defaultViewport: chromium.defaultViewport,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
-                ignoreHTTPSErrors: true,
             });
         } else {
             // Local development configuration
